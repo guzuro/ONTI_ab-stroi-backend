@@ -3,8 +3,11 @@ package backend.model;
 public class LoginData {
 	private String login;
 	private String password;
-	
-	public LoginData (String login, String password){
+
+	public LoginData() {
+	}
+
+	public LoginData(String login, String password) {
 		this.setLogin(login);
 		this.setPassword(password);
 	}
