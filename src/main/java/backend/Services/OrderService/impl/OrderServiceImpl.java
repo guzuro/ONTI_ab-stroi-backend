@@ -1,8 +1,8 @@
-package backend.OrderService.impl;
+package backend.Services.OrderService.impl;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import backend.OrderService.OrderService;
+import backend.Services.OrderService.OrderService;
 import backend.model.Order.Order;
 
 public class OrderServiceImpl implements OrderService {
