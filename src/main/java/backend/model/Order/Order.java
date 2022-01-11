@@ -1,48 +1,89 @@
 package backend.model.Order;
 
 import java.time.LocalDateTime;
-
-import backend.model.User.Client;
+import java.util.List;
 
 public class Order {
 
-	private Number orderId;
-	private Client client;
-	private LocalDateTime createdAt;
-	private LocalDateTime updatedAt;
-		
-	public Order() {}
-	public Order(Number orderId,Client client, LocalDateTime createdAt, LocalDateTime updatedAt) {
-		this.orderId = orderId;
-		this.client = client;
-		this.createdAt = createdAt;
-		this.updatedAt = updatedAt;
+	private Number id;
+	private Number client_id;
+	private Contract contract;
+
+	private List<Smeta> smeta;
+	private LocalDateTime created_at;
+	private LocalDateTime updated_at;
+
+	public Order() {
 	}
+
+	public Order(Number client_id, Contract contract, List<Smeta> smeta) {
+		this.client_id = client_id;
+		this.smeta = smeta;
+		this.contract = contract;
+	}
+
+	public Order(Number client_id, Contract contract, List<Smeta> smeta, LocalDateTime updatedAt) {
+		this.client_id = client_id;
+		this.smeta = smeta;
+		this.contract = contract;
+		this.updated_at = updatedAt;
+}
 	
-	
-	public Number getOrderId() {
-		return orderId;
+	public Order(Number id, Number client_id, Contract contract, List<Smeta> smeta, LocalDateTime createdAt, LocalDateTime updatedAt) {
+		this.id = id;
+		this.client_id = client_id;
+		this.smeta = smeta;
+		this.contract = contract;
+		this.created_at = createdAt;
+		this.updated_at = updatedAt;
 	}
-	public void setOrderId(Number orderId) {
-		this.orderId = orderId;
+
+	public Number getId() {
+		return id;
 	}
-	public Client getClient() {
-		return client;
+
+	public void setId(Number id) {
+		this.id = id;
 	}
-	public void setClient(Client client) {
-		this.client = client;
+
+	public Number getClient_id() {
+		return client_id;
 	}
-	public LocalDateTime getUpdatedAt() {
-		return updatedAt;
+
+	public void setClient_id(Number client_id) {
+		this.client_id = client_id;
 	}
-	public void setUpdatedAt(LocalDateTime updatedAt) {
-		this.updatedAt = updatedAt;
+
+	public LocalDateTime getUpdated_at() {
+		return updated_at;
 	}
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
+
+	public void setUpdated_at(LocalDateTime updated_at) {
+		this.updated_at = updated_at;
 	}
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
+
+	public LocalDateTime getCreated_at() {
+		return created_at;
 	}
-		
+
+	public void setCreated_at(LocalDateTime created_at) {
+		this.created_at = created_at;
+	}
+
+	public Contract getContract() {
+		return contract;
+	}
+
+	public void setContract(Contract contract) {
+		this.contract = contract;
+	}
+
+	public List<Smeta> getSmeta() {
+		return smeta;
+	}
+
+	public void setSmeta(List<Smeta> smeta) {
+		this.smeta = smeta;
+	}
+
 }
