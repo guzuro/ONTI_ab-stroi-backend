@@ -48,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
 					if (ar.succeeded()) {
 						if (ar.result().rowCount() == 1) {
 							JsonObject resultJson = ar.result().iterator().next().toJson();
+							
 							Session session = ctx.session();
 							session.put("role", resultJson.getString("role").toString());
 							session.put("login", resultJson.getString("login").toString());
@@ -55,7 +56,6 @@ public class AuthServiceImpl implements AuthService {
 
 							response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
 									.end();
-
 						}
 					} else {
 						response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")

@@ -1,7 +1,6 @@
 package backend.Routes;
 
 import backend.Services.AuthService.AuthService;
-import backend.Services.AuthService.impl.AuthServiceImpl;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
