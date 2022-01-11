@@ -15,8 +15,8 @@ public class UserRoutes {
 		Router authRouter = Router.router(vertx);
 
 		authRouter.post("/createclient").handler(rc -> userService.createClient(rc));
-		authRouter.post("/getadmindata").handler(rc -> userService.getAdministratorData(rc));
-		authRouter.post("/getclientdata").handler(rc -> userService.getClientData(rc));
+		authRouter.post("/getuserdata").handler(rc -> userService.getUserData(rc));
+//		authRouter.post("/getclientdata").handler(rc -> userService.getClientData(rc));
 		authRouter.post("/getclients").handler(rc -> userService.getClients(rc));
 
 		return authRouter;

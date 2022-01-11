@@ -2,8 +2,11 @@ package backend.model.User;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import backend.model.Order.Order;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Client extends BaseUser {
 
 	private CopyOnWriteArrayList<Order> order_id;
@@ -12,9 +15,6 @@ public class Client extends BaseUser {
 	public Client() {
 	}
 
-	
-	
-	
 	public Client(Number id, String login, String first_name, String last_name) {
 		super(id, login, first_name, last_name);
 
@@ -36,17 +36,5 @@ public class Client extends BaseUser {
 
 	public void setInvited_by(Number invited_by) {
 		this.invited_by = invited_by;
-	}
-
-	@Override
-	public CopyOnWriteArrayList<Number> getInvited_customers() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setInvited_customers(CopyOnWriteArrayList<Number> invited_customers) {
-		// TODO Auto-generated method stub
-		
 	}
 }

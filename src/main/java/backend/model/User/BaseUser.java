@@ -1,11 +1,10 @@
 package backend.model.User;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import backend.model.UserRoleEnum;
 
-public abstract class BaseUser {
+public class BaseUser {
 
 	private Number id;
 	private String login;
@@ -14,7 +13,7 @@ public abstract class BaseUser {
 	private String last_name;
 
 	private UserRoleEnum role;
-	private LocalDateTime createdAt;
+	private LocalDateTime created_at;
 
 	public BaseUser(String login, String password, String first_name, String last_name, UserRoleEnum role) {
 		this.login = login;
@@ -38,7 +37,7 @@ public abstract class BaseUser {
 		this.first_name = first_name;
 		this.last_name = last_name;
 		this.role = userRoleEnum;
-		this.createdAt = ldt;
+		this.created_at = ldt;
 	}
 
 	public BaseUser(Number id, String login, String first_name, String last_name) {
@@ -50,14 +49,6 @@ public abstract class BaseUser {
 
 	public BaseUser() {
 		// TODO Auto-generated constructor stub
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
 	}
 
 	public UserRoleEnum getRole() {
@@ -107,10 +98,14 @@ public abstract class BaseUser {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	
+	public LocalDateTime getCreated_at() {
+		return created_at;
+	}
 
-	public abstract CopyOnWriteArrayList<Number> getInvited_customers();
-
-	public abstract void setInvited_customers(CopyOnWriteArrayList<Number> invited_customers);
+	public void setCreated_at(LocalDateTime created_at) {
+		this.created_at = created_at;
+	}
 }
 
 //class BaseUserObjectToJson extends JsonSerializer<BaseUser> {

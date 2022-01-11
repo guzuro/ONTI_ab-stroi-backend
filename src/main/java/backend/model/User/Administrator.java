@@ -2,8 +2,11 @@ package backend.model.User;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import backend.model.UserRoleEnum;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Administrator extends BaseUser {
 
 	private CopyOnWriteArrayList<Number> invited_customers;
@@ -28,12 +31,10 @@ public class Administrator extends BaseUser {
 		super(login, first_name, last_name, userRoleEnum);
 	}
 
-	@Override
 	public CopyOnWriteArrayList<Number> getInvited_customers() {
 		return invited_customers;
 	}
 
-	@Override
 	public void setInvited_customers(CopyOnWriteArrayList<Number> invited_customers) {
 		this.invited_customers = invited_customers;
 	}
