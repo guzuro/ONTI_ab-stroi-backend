@@ -16,6 +16,15 @@ public class Order {
 	public Order() {
 	}
 
+	public Order(Number client_id) {
+		this.client_id = client_id;
+	}
+
+	public Order(Number client_id, Contract contract) {
+		this.client_id = client_id;
+		this.contract = contract;
+	}
+
 	public Order(Number client_id, Contract contract, List<Smeta> smeta) {
 		this.client_id = client_id;
 		this.smeta = smeta;
@@ -27,9 +36,10 @@ public class Order {
 		this.smeta = smeta;
 		this.contract = contract;
 		this.updated_at = updatedAt;
-}
-	
-	public Order(Number id, Number client_id, Contract contract, List<Smeta> smeta, LocalDateTime createdAt, LocalDateTime updatedAt) {
+	}
+
+	public Order(Number id, Number client_id, Contract contract, List<Smeta> smeta, LocalDateTime createdAt,
+			LocalDateTime updatedAt) {
 		this.id = id;
 		this.client_id = client_id;
 		this.smeta = smeta;
