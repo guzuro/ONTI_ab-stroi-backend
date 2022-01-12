@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
 						for (Row row : result) {
 							clients.add(JsonObject.mapFrom(row.toJson()).mapTo(Client.class));
 						}
-						
+
 						clients.forEach(client -> clientsJson.add(JsonObject.mapFrom(client)));
 
 						response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
