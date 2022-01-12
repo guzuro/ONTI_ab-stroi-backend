@@ -1,9 +1,12 @@
 package backend;
 
 import backend.Routes.AuthRoutes;
+import backend.Routes.OrderRoutes;
 import backend.Routes.UserRoutes;
 import backend.Services.AuthService.AuthService;
 import backend.Services.AuthService.impl.AuthServiceImpl;
+import backend.Services.OrderService.OrderService;
+import backend.Services.OrderService.impl.OrderServiceImpl;
 import backend.Services.UserService.UserService;
 import backend.Services.UserService.impl.UserServiceImpl;
 import backend.db.PostgresConnection;
@@ -31,6 +34,10 @@ public class MainVerticle extends AbstractVerticle {
 		UserService userService = new UserServiceImpl(pgClient);
 		UserRoutes userRoutes = new UserRoutes(userService);
 
+		OrderService orderService= new OrderServiceImpl(pgClient);
+		OrderRoutes orderRoutes = new OrderRoutes(orderService);
+
+		
 		Router router = Router.router(vertx);
 		HttpServer server = vertx.createHttpServer();
 
@@ -38,6 +45,7 @@ public class MainVerticle extends AbstractVerticle {
 
 		router.mountSubRouter("/auth", authRoutes.setAuthRoutes(vertx));
 		router.mountSubRouter("/user", userRoutes.setUserRoutes(vertx));
+		router.mountSubRouter("/order", orderRoutes.setOrderRoutes(vertx));
 
 		router.route().handler(ctx -> {
 			HttpServerResponse response = ctx.response();
