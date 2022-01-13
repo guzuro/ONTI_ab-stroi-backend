@@ -9,7 +9,7 @@ import backend.model.Order.Order;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Client extends BaseUser {
 
-	private CopyOnWriteArrayList<Order> order_id;
+	private Order order_id;
 	private Number invited_by;
 
 	public Client() {
@@ -22,11 +22,11 @@ public class Client extends BaseUser {
 //		this.order_id = order_id;
 	}
 
-	public CopyOnWriteArrayList<Order> getOrder_id() {
+	public Order getOrder_id() {
 		return order_id;
 	}
 
-	public void setOrder_id(CopyOnWriteArrayList<Order> order_id) {
+	public void setOrder_id(Order order_id) {
 		this.order_id = order_id;
 	}
 
