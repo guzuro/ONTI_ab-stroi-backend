@@ -15,7 +15,7 @@ public class Order {
 
 	public Order() {
 	}
-
+	
 	public Order(Number client_id) {
 		this.client_id = client_id;
 	}
@@ -38,6 +38,13 @@ public class Order {
 		this.updated_at = updatedAt;
 	}
 
+	public Order(Number id, Number client_id, Contract contract, List<Smeta> smeta) {
+		this.id = id;
+		this.client_id = client_id;
+		this.smeta = smeta;
+		this.contract = contract;
+	}
+	
 	public Order(Number id, Number client_id, Contract contract, List<Smeta> smeta, LocalDateTime createdAt,
 			LocalDateTime updatedAt) {
 		this.id = id;

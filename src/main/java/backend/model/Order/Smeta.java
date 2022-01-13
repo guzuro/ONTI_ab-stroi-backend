@@ -1,13 +1,19 @@
 package backend.model.Order;
 
 public class Smeta {
+	private Number id;
 	private String item_name;
 	private String unit;
 	private Number quantity; 
 	private Number price;
 	private Number item_total;
 	
-	public Smeta(String item_name, String unit, Number quantity, Number price, Number item_total) {
+	public Smeta() {
+
+	}
+
+	public Smeta(Number id, String item_name, String unit, Number quantity, Number price, Number item_total) {
+		this.id = id;
 		this.item_name = item_name;
 		this.unit = unit;
 		this.quantity = quantity;
@@ -46,5 +52,13 @@ public class Smeta {
 
 	public void setQuantity(Number quantity) {
 		this.quantity = quantity;
+	}
+
+	public Number getId() {
+		return id;
+	}
+
+	public void setId(Number id) {
+		this.id = id;
 	}
 }
