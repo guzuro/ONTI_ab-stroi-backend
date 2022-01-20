@@ -41,8 +41,8 @@ public class MainVerticle extends AbstractVerticle {
 		Router router = Router.router(vertx);
 		HttpServer server = vertx.createHttpServer();
 
-		router.route().handler(BodyHandler.create()).handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-
+		router.route().handler(BodyHandler.create().setMergeFormAttributes(true).setUploadsDirectory("uploads")).handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+		
 		router.mountSubRouter("/auth", authRoutes.setAuthRoutes(vertx));
 		router.mountSubRouter("/user", userRoutes.setUserRoutes(vertx));
 		router.mountSubRouter("/order", orderRoutes.setOrderRoutes(vertx));
