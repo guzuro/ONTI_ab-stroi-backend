@@ -1,15 +1,24 @@
 package backend.Services.OrderService.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import backend.Services.OrderService.OrderService;
 import backend.model.Order.Contract;
 import backend.model.Order.Order;
 import backend.model.Order.Smeta;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -45,19 +54,12 @@ public class OrderServiceImpl implements OrderService {
 												.end(ar.cause().toString());
 									}
 								});
-
 					} else {
 						response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")
 								.end(ar.cause().toString());
 					}
 
 				});
-
-	}
-
-	@Override
-	public void saveOrder(RoutingContext ctx) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -70,7 +72,6 @@ public class OrderServiceImpl implements OrderService {
 		pgClient.preparedQuery("DELETE FROM db_order WHERE id = $1").execute(Tuple.of(order_id), ar -> {
 			if (ar.succeeded()) {
 				response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8").end();
-
 			} else {
 				response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")
 						.end(ar.cause().toString());
@@ -85,8 +86,8 @@ public class OrderServiceImpl implements OrderService {
 
 		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
 
-		pgClient.preparedQuery("SELECT id, client_id, smeta FROM db_order WHERE id = $1")
-				.execute(Tuple.of(order_id), ar -> {
+		pgClient.preparedQuery("SELECT id, client_id, smeta FROM db_order WHERE id = $1").execute(Tuple.of(order_id),
+				ar -> {
 					if (ar.succeeded()) {
 						Order order = ar.result().iterator().next().toJson().mapTo(Order.class);
 						pgClient.preparedQuery(
@@ -94,7 +95,8 @@ public class OrderServiceImpl implements OrderService {
 								.execute(Tuple.of(order_id), contractAr -> {
 									if (contractAr.succeeded()) {
 										if (contractAr.result().size() != 0) {
-											order.setContract(contractAr.result().iterator().next().toJson().mapTo(Contract.class));
+											order.setContract(contractAr.result().iterator().next().toJson()
+													.mapTo(Contract.class));
 										}
 										pgClient.preparedQuery(
 												"SELECT id, item_name, unit, quantity, price, item_total FROM db_smeta WHERE order_id = $1")
@@ -110,7 +112,6 @@ public class OrderServiceImpl implements OrderService {
 
 														}
 														order.setSmeta(smetaArr);
-
 
 														response.setStatusCode(200)
 																.putHeader("content-type",
@@ -132,13 +133,104 @@ public class OrderServiceImpl implements OrderService {
 
 									}
 								});
-//						response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8").end();
-
 					} else {
 						response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")
 								.end(ar.cause().toString());
 					}
 
+				});
+	}
+
+	@Override
+	public void getContract(RoutingContext ctx) {
+		HttpServerResponse response = ctx.response();
+
+		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
+
+		pgClient.preparedQuery("SELECT contract_main, contract_signed, contract_approved WHERE order_id = $1").execute(Tuple.of(order_id),
+				ar -> {
+					if (ar.succeeded()) {
+						Contract contract = ar.result().iterator().next().toJson().mapTo(Contract.class);
+						response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(JsonObject.mapFrom(contract).encodePrettily());
+					} else {
+
+					}
+				});
+	}
+
+	@Override
+	public void saveContract(RoutingContext ctx) {
+		ctx.response().setChunked(true);
+		HttpServerResponse response = ctx.response();
+
+		Number order_id = Integer.valueOf(ctx.request().getParam("order_id"));
+
+		Set<FileUpload> uploads = ctx.fileUploads();
+		Contract contract = new Contract();
+
+		uploads.forEach(upload -> {
+			System.out.println(upload.name());
+			try {
+				if (upload.name().contains("contract_main")) {
+					File uploadedFile = new File(upload.uploadedFileName());
+					uploadedFile.renameTo(new File("uploads/" + upload.fileName()));
+					uploadedFile.createNewFile();
+					byte[] contract_main = Files.readAllBytes(uploadedFile.toPath());
+					contract.setContract_main(contract_main);
+				}
+				if (upload.name().contains("contract_signed")) {
+					File uploadedFile = new File(upload.uploadedFileName());
+					uploadedFile.renameTo(new File("uploads/" + upload.fileName()));
+					uploadedFile.createNewFile();
+					byte[] contract_signed = Files.readAllBytes(uploadedFile.toPath());
+					contract.setContract_signed(contract_signed);
+				}
+			} catch (IOException e) {
+//						// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		pgClient.preparedQuery(
+				"SELECT contract_main, contract_signed, contract_approved FROM db_contract WHERE order_id = $1;")
+				.execute(Tuple.of(order_id), ar -> {
+					if (ar.succeeded()) {
+						if (ar.result().size() == 0) {
+							pgClient.preparedQuery(
+									"INSERT INTO db_contract(order_id, contract_main, contract_signed, contract_approved) "
+											+ "VALUES ($1, $2, $3, $4) RETURNING contract_signed;")
+									.execute(
+											Tuple.of(order_id, contract.getContract_main(),
+													contract.getContract_signed(), contract.getContract_approved()),
+											res -> {
+												if (res.succeeded()) {
+													Contract contractRes = res.result().iterator().next().toJson()
+															.mapTo(Contract.class);
+
+													response.end(JsonObject.mapFrom(contractRes).toBuffer());
+												} else {
+													System.out.println(res.cause() + "1");
+												}
+											});
+						} else {
+							pgClient.preparedQuery(
+									"UPDATE public.db_contract SET contract_approved=$1, contract_main=$2, contract_signed=$3 WHERE order_id = $4 "
+									+ "RETURNING contract_signed, contract_main, contract_approved;")
+									.execute(Tuple.of(contract.getContract_approved(), contract.getContract_main(),
+											contract.getContract_signed(), order_id), res -> {
+												if (res.succeeded()) {
+													Contract contractRes = res.result().iterator().next().toJson()
+															.mapTo(Contract.class);
+													response.end(JsonObject.mapFrom(contractRes).toBuffer());
+												} else {
+													System.out.println(res.cause() + "1");
+												}
+											});
+						}
+					} else {
+						System.out.println(ar.cause());
+
+					}
 				});
 	}
 

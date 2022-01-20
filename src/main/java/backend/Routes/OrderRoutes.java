@@ -16,9 +16,12 @@ public class OrderRoutes {
 
 		orderRouter.post("/create").handler(rc -> orderService.createOrder(rc));
 		orderRouter.post("/remove").handler(rc -> orderService.removeOrder(rc));
-		orderRouter.post("/save").handler(rc -> orderService.saveOrder(rc));
 		orderRouter.post("/getbyid").handler(rc -> orderService.getOrderById(rc));
 		
+		
+		orderRouter.post("/contract/get").handler(rc -> orderService.getContract(rc));
+		orderRouter.post("/contract/save").handler(rc -> orderService.saveContract(rc));
+
 		return orderRouter;
 	}	
 }
