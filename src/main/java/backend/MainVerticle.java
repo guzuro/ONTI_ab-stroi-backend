@@ -13,11 +13,13 @@ import backend.db.PostgresConnection;
 import backend.model.User.UsersFabric;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.sqlclient.SqlClient;
@@ -30,19 +32,34 @@ public class MainVerticle extends AbstractVerticle {
 
 		AuthService authService = new AuthServiceImpl(pgClient);
 		AuthRoutes authRoutes = new AuthRoutes(authService);
-		
+
 		UserService userService = new UserServiceImpl(pgClient);
 		UserRoutes userRoutes = new UserRoutes(userService);
 
-		OrderService orderService= new OrderServiceImpl(pgClient);
+		OrderService orderService = new OrderServiceImpl(pgClient);
 		OrderRoutes orderRoutes = new OrderRoutes(orderService);
 
-		
 		Router router = Router.router(vertx);
 		HttpServer server = vertx.createHttpServer();
 
-		router.route().handler(BodyHandler.create().setMergeFormAttributes(true).setUploadsDirectory("uploads")).handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-		
+		router.route()
+				.handler(
+						CorsHandler.create()
+					    .allowedMethod(io.vertx.core.http.HttpMethod.GET)
+					    .allowedMethod(io.vertx.core.http.HttpMethod.POST)
+					    .allowedMethod(io.vertx.core.http.HttpMethod.OPTIONS)
+					    .allowCredentials(true)
+					    .allowedHeader("Access-Control-Allow-Headers")
+					    .allowedHeader("Access-Control-Allow-Method")
+					    .allowedHeader("Access-Control-Allow-Origin")
+					    .allowedHeader("Access-Control-Allow-Credentials")
+					    .allowedHeader("Content-Type"))
+				.handler(BodyHandler.create().setMergeFormAttributes(true).setUploadsDirectory("uploads"))
+				.handler(SessionHandler.create(LocalSessionStore.create(vertx))
+						.setCookieSameSite(CookieSameSite.NONE).setCookieHttpOnlyFlag(true).setCookieless(false).setCookieSecureFlag(true)
+
+						);
+
 		router.mountSubRouter("/auth", authRoutes.setAuthRoutes(vertx));
 		router.mountSubRouter("/user", userRoutes.setUserRoutes(vertx));
 		router.mountSubRouter("/order", orderRoutes.setOrderRoutes(vertx));
@@ -57,7 +74,7 @@ public class MainVerticle extends AbstractVerticle {
 			}
 		});
 
-		server.requestHandler(router).listen(8080, httpServerAsyncResult -> {
+		server.requestHandler(router).listen(3080, httpServerAsyncResult -> {
 			if (httpServerAsyncResult.succeeded()) {
 				System.out.println("HTTP server started on port 8080");
 				startPromise.complete();

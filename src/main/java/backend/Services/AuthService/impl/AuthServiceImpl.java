@@ -41,14 +41,13 @@ public class AuthServiceImpl implements AuthService {
 	public void login(RoutingContext ctx) {
 		HttpServerResponse response = ctx.response();
 		LoginData loginData = ctx.getBodyAsJson().mapTo(LoginData.class);
-
 		pgClient.preparedQuery(
 				"SELECT id, login, first_name, last_name, role, order_id, invited_by, invited_customers, created_at FROM db_user WHERE login=$1 AND password=$2")
 				.execute(Tuple.of(loginData.getLogin(), loginData.getPassword()), ar -> {
 					if (ar.succeeded()) {
 						if (ar.result().rowCount() == 1) {
 							JsonObject resultJson = ar.result().iterator().next().toJson();
-							
+
 							Session session = ctx.session();
 							session.put("role", resultJson.getString("role").toString());
 							session.put("login", resultJson.getString("login").toString());
@@ -56,6 +55,8 @@ public class AuthServiceImpl implements AuthService {
 
 							response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
 									.end();
+						} else {
+							response.setStatusCode(404).end();
 						}
 					} else {
 						response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")
