@@ -41,13 +41,16 @@ public class OrderServiceImpl implements OrderService {
 		pgClient.preparedQuery("INSERT INTO db_order(client_id) VALUES ($1) RETURNING id;")
 				.execute(Tuple.of(order.getClient_id()), ar -> {
 					if (ar.succeeded()) {
-						Number orderId = ar.result().iterator().next().toJson().getNumber("id");
+						Number order_id = ar.result().iterator().next().toJson().getNumber("id");
+						JsonObject json = new JsonObject();
+						json.put("order_id", order_id);
 						LocalDateTime updateTime = LocalDateTime.now();
 						pgClient.preparedQuery("UPDATE db_user SET updated_at=$1, order_id=$2 WHERE id = $3;")
-								.execute(Tuple.of(updateTime, orderId, order.getClient_id()), res -> {
+								.execute(Tuple.of(updateTime, order_id, order.getClient_id()), res -> {
 									if (ar.succeeded()) {
 										response.setStatusCode(200)
-												.putHeader("content-type", "application/json; charset=UTF-8").end();
+												.putHeader("content-type", "application/json; charset=UTF-8")
+												.end(json.encodePrettily());
 									} else {
 										response.setStatusCode(400)
 												.putHeader("content-type", "application/json; charset=UTF-8")
@@ -147,8 +150,8 @@ public class OrderServiceImpl implements OrderService {
 
 		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
 
-		pgClient.preparedQuery("SELECT contract_main, contract_signed, contract_approved WHERE order_id = $1").execute(Tuple.of(order_id),
-				ar -> {
+		pgClient.preparedQuery("SELECT contract_main, contract_signed, contract_approved WHERE order_id = $1")
+				.execute(Tuple.of(order_id), ar -> {
 					if (ar.succeeded()) {
 						Contract contract = ar.result().iterator().next().toJson().mapTo(Contract.class);
 						response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
@@ -215,7 +218,7 @@ public class OrderServiceImpl implements OrderService {
 						} else {
 							pgClient.preparedQuery(
 									"UPDATE public.db_contract SET contract_approved=$1, contract_main=$2, contract_signed=$3 WHERE order_id = $4 "
-									+ "RETURNING contract_signed, contract_main, contract_approved;")
+											+ "RETURNING contract_signed, contract_main, contract_approved;")
 									.execute(Tuple.of(contract.getContract_approved(), contract.getContract_main(),
 											contract.getContract_signed(), order_id), res -> {
 												if (res.succeeded()) {

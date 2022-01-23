@@ -9,7 +9,7 @@ import backend.model.Order.Order;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Client extends BaseUser {
 
-	private Order order_id;
+	private Number order_id;
 	private Number invited_by;
 
 	public Client() {
@@ -22,11 +22,11 @@ public class Client extends BaseUser {
 //		this.order_id = order_id;
 	}
 
-	public Order getOrder_id() {
+	public Number getOrder_id() {
 		return order_id;
 	}
 
-	public void setOrder_id(Order order_id) {
+	public void setOrder_id(Number order_id) {
 		this.order_id = order_id;
 	}
 

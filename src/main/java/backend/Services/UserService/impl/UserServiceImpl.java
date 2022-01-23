@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 		CopyOnWriteArrayList<Client> clients = new CopyOnWriteArrayList<Client>();
 
 		pgClient.preparedQuery(
-				"SELECT id, login, first_name, last_name, invited_by, order_id FROM db_user WHERE invited_by = $1")
+				"SELECT id, login, first_name, last_name, invited_by, role, order_id FROM db_user WHERE invited_by = $1")
 				.execute(Tuple.of(adminId), ar -> {
 					if (ar.succeeded()) {
 						RowSet<Row> result = ar.result();
