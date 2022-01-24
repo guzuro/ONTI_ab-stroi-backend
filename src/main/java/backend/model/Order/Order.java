@@ -3,10 +3,12 @@ package backend.model.Order;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import backend.model.User.Client;
+
 public class Order {
 
 	private Number id;
-	private Number client_id;
+	private Client client_id;
 	private Contract contract;
 
 	private List<Smeta> smeta;
@@ -16,36 +18,36 @@ public class Order {
 	public Order() {
 	}
 	
-	public Order(Number client_id) {
+	public Order(Client client_id) {
 		this.client_id = client_id;
 	}
 
-	public Order(Number client_id, Contract contract) {
+	public Order(Client client_id, Contract contract) {
 		this.client_id = client_id;
 		this.contract = contract;
 	}
 
-	public Order(Number client_id, Contract contract, List<Smeta> smeta) {
+	public Order(Client client_id, Contract contract, List<Smeta> smeta) {
 		this.client_id = client_id;
 		this.smeta = smeta;
 		this.contract = contract;
 	}
 
-	public Order(Number client_id, Contract contract, List<Smeta> smeta, LocalDateTime updatedAt) {
+	public Order(Client client_id, Contract contract, List<Smeta> smeta, LocalDateTime updatedAt) {
 		this.client_id = client_id;
 		this.smeta = smeta;
 		this.contract = contract;
 		this.updated_at = updatedAt;
 	}
 
-	public Order(Number id, Number client_id, Contract contract, List<Smeta> smeta) {
+	public Order(Number id, Client client_id, Contract contract, List<Smeta> smeta) {
 		this.id = id;
 		this.client_id = client_id;
 		this.smeta = smeta;
 		this.contract = contract;
 	}
 	
-	public Order(Number id, Number client_id, Contract contract, List<Smeta> smeta, LocalDateTime createdAt,
+	public Order(Number id, Client client_id, Contract contract, List<Smeta> smeta, LocalDateTime createdAt,
 			LocalDateTime updatedAt) {
 		this.id = id;
 		this.client_id = client_id;
@@ -63,11 +65,11 @@ public class Order {
 		this.id = id;
 	}
 
-	public Number getClient_id() {
+	public Client getClient_id() {
 		return client_id;
 	}
 
-	public void setClient_id(Number client_id) {
+	public void setClient_id(Client client_id) {
 		this.client_id = client_id;
 	}
 

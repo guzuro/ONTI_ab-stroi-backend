@@ -1,10 +1,7 @@
 package backend.model.User;
 
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import backend.model.Order.Order;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Client extends BaseUser {
