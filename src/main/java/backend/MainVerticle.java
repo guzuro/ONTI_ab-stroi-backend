@@ -21,6 +21,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.sqlclient.SqlClient;
 
@@ -42,23 +43,24 @@ public class MainVerticle extends AbstractVerticle {
 		Router router = Router.router(vertx);
 		HttpServer server = vertx.createHttpServer();
 
-		router.route()
-				.handler(
-						CorsHandler.create()
-					    .allowedMethod(io.vertx.core.http.HttpMethod.GET)
-					    .allowedMethod(io.vertx.core.http.HttpMethod.POST)
-					    .allowedMethod(io.vertx.core.http.HttpMethod.OPTIONS)
-					    .allowCredentials(true)
-					    .allowedHeader("Access-Control-Allow-Headers")
-					    .allowedHeader("Access-Control-Allow-Method")
-					    .allowedHeader("Access-Control-Allow-Origin")
-					    .allowedHeader("Access-Control-Allow-Credentials")
-					    .allowedHeader("Content-Type"))
-				.handler(BodyHandler.create().setMergeFormAttributes(true).setUploadsDirectory("uploads"))
-				.handler(SessionHandler.create(LocalSessionStore.create(vertx))
-						.setCookieSameSite(CookieSameSite.NONE).setCookieHttpOnlyFlag(true).setCookieless(false).setCookieSecureFlag(true)
+		router.route().handler(CorsHandler.create().allowedMethod(io.vertx.core.http.HttpMethod.GET)
+				.allowedMethod(io.vertx.core.http.HttpMethod.POST).allowedMethod(io.vertx.core.http.HttpMethod.OPTIONS)
+				.allowCredentials(true).allowedHeader("Access-Control-Allow-Headers")
+				.allowedHeader("Access-Control-Allow-Method").allowedHeader("Access-Control-Allow-Origin")
+				.allowedHeader("Access-Control-Allow-Credentials").allowedHeader("Content-Type"))
+				.handler(BodyHandler.create().setMergeFormAttributes(true).setUploadsDirectory("webroot"))
+				.handler(SessionHandler.create(LocalSessionStore.create(vertx)).setCookieSameSite(CookieSameSite.NONE)
+						.setCookieHttpOnlyFlag(true).setCookieless(false).setCookieSecureFlag(true));
 
-						);
+		router.route("/assets/*").handler(StaticHandler.create("webroot")).handler(handler -> {
+			String path = handler.request().path();
+			String[] pathSplited = path.split("/");
+			String fileName = pathSplited[3];
+			HttpServerResponse response = handler.response();
+			response
+			.putHeader("Transfer-Encoding", "chunked")
+			.sendFile("webroot/" + fileName);
+		});
 
 		router.mountSubRouter("/auth", authRoutes.setAuthRoutes(vertx));
 		router.mountSubRouter("/user", userRoutes.setUserRoutes(vertx));
