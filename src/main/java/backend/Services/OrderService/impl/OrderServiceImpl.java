@@ -12,6 +12,7 @@ import backend.model.Order.Contract;
 import backend.model.Order.Order;
 import backend.model.Order.Smeta;
 import backend.model.User.Client;
+import io.netty.handler.codec.http.HttpResponse;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -58,9 +59,7 @@ public class OrderServiceImpl implements OrderService {
 						response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")
 								.end(ar.cause().toString());
 					}
-
 				});
-
 	}
 
 	@Override
@@ -76,7 +75,6 @@ public class OrderServiceImpl implements OrderService {
 				response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")
 						.end(ar.cause().toString());
 			}
-
 		});
 	}
 
@@ -120,7 +118,6 @@ public class OrderServiceImpl implements OrderService {
 																						JsonObject.mapFrom(row.toJson())
 																								.mapTo(Smeta.class));
 																			}
-
 																		}
 																		order.setSmeta(smetaArr);
 
@@ -129,7 +126,6 @@ public class OrderServiceImpl implements OrderService {
 																				"application/json; charset=UTF-8")
 																				.end(JsonObject.mapFrom(order)
 																						.encodePrettily());
-
 																	} else {
 																		response.setStatusCode(400).putHeader(
 																				"content-type",
@@ -137,13 +133,11 @@ public class OrderServiceImpl implements OrderService {
 																				.end(ar.cause().toString());
 																	}
 																});
-
 													} else {
 														response.setStatusCode(400)
 																.putHeader("content-type",
 																		"application/json; charset=UTF-8")
 																.end(ar.cause().toString());
-
 													}
 												});
 									} else {
@@ -152,7 +146,6 @@ public class OrderServiceImpl implements OrderService {
 												.end(userResult.cause().toString());
 									}
 								});
-
 					} else {
 						response.setStatusCode(400).putHeader("content-type", "application/json; charset=UTF-8")
 								.end(ar.cause().toString());
@@ -170,12 +163,12 @@ public class OrderServiceImpl implements OrderService {
 
 		System.out.println(req.path());
 		pgClient.preparedQuery(
-				"SELECT contract_main, contract_signed, contract_approved, contract_main_mime, contract_signed_mime FROM db_contract WHERE order_id = $1")
+				"SELECT contract_main, contract_signed, contract_approved FROM db_contract WHERE order_id = $1")
 				.execute(Tuple.of(order_id), ar -> {
 					if (ar.succeeded()) {
 						Contract contract = ar.result().iterator().next().toJson().mapTo(Contract.class);
 						response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
-						.end(JsonObject.mapFrom(contract).encodePrettily());
+								.end(JsonObject.mapFrom(contract).encodePrettily());
 					} else {
 						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
 								.end(ar.cause().toString());
@@ -195,21 +188,18 @@ public class OrderServiceImpl implements OrderService {
 		Contract contract = new Contract();
 
 		uploads.forEach(upload -> {
-			System.out.println(upload.name());
 			try {
 				if (upload.name().contains("contract_main")) {
 					File uploadedFile = new File(upload.uploadedFileName());
 					uploadedFile.renameTo(new File("webroot/" + upload.fileName()));
 					uploadedFile.createNewFile();
 					contract.setContract_main(upload.fileName());
-					contract.setContract_main_mime(upload.contentType());
 				}
 				if (upload.name().contains("contract_signed")) {
 					File uploadedFile = new File(upload.uploadedFileName());
 					uploadedFile.renameTo(new File("webroot/" + upload.fileName()));
 					uploadedFile.createNewFile();
 					contract.setContract_signed(upload.fileName());
-					contract.setContract_signed_mime(upload.contentType());
 				}
 			} catch (IOException e) {
 //						// TODO Auto-generated catch block
@@ -222,42 +212,95 @@ public class OrderServiceImpl implements OrderService {
 					if (ar.succeeded()) {
 						if (ar.result().size() == 0) {
 							pgClient.preparedQuery(
-									"INSERT INTO db_contract(order_id, contract_main, contract_signed, contract_approved, contract_main_mime, contract_signed_mime) "
-											+ "VALUES ($1, $2, $3, $4, $5, $6) RETURNING contract_signed;")
-									.execute(Tuple.of(order_id, contract.getContract_main(),
-											contract.getContract_signed(), contract.getContract_approved(),
-											contract.getContract_main_mime(), contract.getContract_signed_mime()),
+									"INSERT INTO db_contract(order_id, contract_main, contract_signed, contract_approved) "
+											+ "VALUES ($1, $2, $3, $4) RETURNING id;")
+									.execute(
+											Tuple.of(order_id, contract.getContract_main(),
+													contract.getContract_signed(), contract.getContract_approved()),
 											res -> {
 												if (res.succeeded()) {
-													Contract contractRes = res.result().iterator().next().toJson()
-															.mapTo(Contract.class);
-
-													response.end(JsonObject.mapFrom(contractRes).toBuffer());
+													pgClient.preparedQuery(
+															"UPDATE db_order SET contract_id=$1 WHERE id = $2;")
+															.execute(Tuple.of(res.result().iterator().next().toJson()
+																	.getNumber("id"), order_id), updRes -> {
+																		if (updRes.succeeded()) {
+																			Contract contractRes = res.result()
+																					.iterator().next().toJson()
+																					.mapTo(Contract.class);
+																			response.end(JsonObject.mapFrom(contractRes)
+																					.toBuffer());
+																		} else {
+																			response.setStatusCode(500).putHeader(
+																					"content-type",
+																					"application/json; charset=UTF-8")
+																					.end(res.cause().toString());
+																		}
+																	});
 												} else {
-													System.out.println(res.cause() + "1");
+													response.setStatusCode(500)
+															.putHeader("content-type",
+																	"application/json; charset=UTF-8")
+															.end(res.cause().toString());
 												}
 											});
 						} else {
 							pgClient.preparedQuery(
-									"UPDATE public.db_contract SET contract_approved=$1, contract_main=$2, contract_signed=$3, contract_main_mime=$5, contract_signed_mime=$6 WHERE order_id = $4 "
-											+ "RETURNING contract_signed, contract_main, contract_approved, contract_main_mime, contract_signed_mime;")
+									"UPDATE public.db_contract SET contract_approved=$1, contract_main=$2, contract_signed=$3 WHERE order_id = $4 "
+											+ "RETURNING contract_signed, contract_main, contract_approved;")
 									.execute(Tuple.of(contract.getContract_approved(), contract.getContract_main(),
-											contract.getContract_signed(), order_id, contract.getContract_main_mime(),
-											contract.getContract_signed_mime()), res -> {
+											contract.getContract_signed(), order_id), res -> {
 												if (res.succeeded()) {
 													Contract contractRes = res.result().iterator().next().toJson()
 															.mapTo(Contract.class);
 													response.end(JsonObject.mapFrom(contractRes).toBuffer());
 												} else {
-													System.out.println(res.cause() + "1");
+													response.setStatusCode(500)
+															.putHeader("content-type",
+																	"application/json; charset=UTF-8")
+															.end(res.cause().toString());
 												}
 											});
 						}
 					} else {
-						System.out.println(ar.cause());
-
+						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(ar.cause().toString());
 					}
 				});
+	}
+
+	@Override
+	public void saveSmeta(RoutingContext ctx) {
+		HttpServerResponse response = ctx.response();
+
+		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
+		ArrayList<Smeta> smeta = new ArrayList<Smeta>();
+		ctx.getBodyAsJson().getJsonArray("smeta").forEach(object -> {
+			smeta.add(JsonObject.mapFrom(object).mapTo(Smeta.class));
+		});
+		try {
+			smeta.forEach(smetaItem -> {
+				if (smetaItem.getTo_delete() != null && smetaItem.getTo_delete() == true) {
+					pgClient.preparedQuery("DELETE FROM db_smeta WHERE id = $1").execute(Tuple.of(smetaItem.getId()));
+
+				}
+				if (smetaItem.getId() == null) {
+					pgClient.preparedQuery(
+							"INSERT INTO db_smeta(item_name, unit, quantity, price, item_total, order_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;")
+							.execute(Tuple.of(smetaItem.getItem_name(), smetaItem.getUnit(), smetaItem.getQuantity(),
+									smetaItem.getPrice(), smetaItem.getItem_total(), order_id));
+				} else {
+					pgClient.preparedQuery(
+							"UPDATE db_smeta SET item_name=$1, unit=$2, quantity=$3, price=$4, item_total=$5 WHERE id = $6 RETURNING id;")
+							.execute(Tuple.of(smetaItem.getItem_name(), smetaItem.getUnit(), smetaItem.getQuantity(),
+									smetaItem.getPrice(), smetaItem.getItem_total(), smetaItem.getId()));
+				}
+
+			});
+			response.setStatusCode(200).end();
+		} catch (Exception e) {
+			response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+					.end(e.getMessage());
+		}
 	}
 
 }

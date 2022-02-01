@@ -9,4 +9,6 @@ public interface OrderService {
 	
 	void getContract(RoutingContext ctx);
 	void saveContract(RoutingContext ctx);
+	
+	void saveSmeta(RoutingContext ctx);
 }
