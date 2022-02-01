@@ -7,9 +7,18 @@ public class Smeta {
 	private Number quantity; 
 	private Number price;
 	private Number item_total;
+	private Boolean to_delete;
 	
 	public Smeta() {
 
+	}
+	
+	public Smeta(String item_name, String unit, Number quantity, Number price, Number item_total) {
+		this.item_name = item_name;
+		this.unit = unit;
+		this.quantity = quantity;
+		this.price = price;
+		this.item_total = item_total;
 	}
 
 	public Smeta(Number id, String item_name, String unit, Number quantity, Number price, Number item_total) {
@@ -19,6 +28,16 @@ public class Smeta {
 		this.quantity = quantity;
 		this.price = price;
 		this.item_total = item_total;
+	}
+	
+	public Smeta(Number id, String item_name, String unit, Number quantity, Number price, Number item_total, Boolean to_delete) {
+		this.id = id;
+		this.item_name = item_name;
+		this.unit = unit;
+		this.quantity = quantity;
+		this.price = price;
+		this.item_total = item_total;
+		this.to_delete = to_delete;
 	}
 	
 	public String getItem_name() {
@@ -60,5 +79,13 @@ public class Smeta {
 
 	public void setId(Number id) {
 		this.id = id;
+	}
+
+	public Boolean getTo_delete() {
+		return to_delete;
+	}
+
+	public void setTo_delete(Boolean to_delete) {
+		this.to_delete = to_delete;
 	}
 }

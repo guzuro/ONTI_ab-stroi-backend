@@ -22,6 +22,8 @@ public class OrderRoutes {
 		orderRouter.post("/contract/get").handler(rc -> orderService.getContract(rc));
 		orderRouter.post("/contract/save").handler(rc -> orderService.saveContract(rc));
 
+		orderRouter.post("/smeta/save").handler(rc -> orderService.saveSmeta(rc));
+
 		return orderRouter;
 	}	
 }
