@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
 										Client user = JsonObject.mapFrom(jsonUser).mapTo(Client.class);
 										order.setClient_id(user);
 										pgClient.preparedQuery(
-												"SELECT id, contract_main, contract_signed FROM db_contract WHERE order_id = $1")
+												"SELECT id, contract_main, contract_signed, contract_approved FROM db_contract WHERE order_id = $1")
 												.execute(Tuple.of(order_id), contractAr -> {
 													if (contractAr.succeeded()) {
 														if (contractAr.result().size() != 0) {
@@ -187,6 +187,14 @@ public class OrderServiceImpl implements OrderService {
 		Set<FileUpload> uploads = ctx.fileUploads();
 		Contract contract = new Contract();
 
+		if (ctx.request().getParam("contract_main") != null) {
+			contract.setContract_main(ctx.request().getParam("contract_main"));
+		}
+
+		if (ctx.request().getParam("contract_signed") != null) {
+			contract.setContract_signed(ctx.request().getParam("contract_signed"));
+		}
+
 		uploads.forEach(upload -> {
 			try {
 				if (upload.name().contains("contract_main")) {
@@ -266,6 +274,25 @@ public class OrderServiceImpl implements OrderService {
 								.end(ar.cause().toString());
 					}
 				});
+	}
+
+	@Override
+	public void approveContract(RoutingContext ctx) {
+		HttpServerResponse response = ctx.response();
+
+		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
+		Boolean contract_approved = ctx.getBodyAsJson().getBoolean("contract_approved");
+
+		pgClient.preparedQuery("UPDATE public.db_contract SET contract_approved=$1 WHERE order_id = $2;")
+				.execute(Tuple.of(contract_approved, order_id), res -> {
+					if (res.succeeded()) {
+						response.setStatusCode(200).end();
+					} else {
+						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(res.cause().toString());
+					}
+				});
+
 	}
 
 	@Override
