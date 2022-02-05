@@ -12,7 +12,6 @@ import backend.model.Order.Contract;
 import backend.model.Order.Order;
 import backend.model.Order.Smeta;
 import backend.model.User.Client;
-import io.netty.handler.codec.http.HttpResponse;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -84,13 +83,18 @@ public class OrderServiceImpl implements OrderService {
 
 		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
 
-		pgClient.preparedQuery("SELECT id, client_id, smeta FROM db_order WHERE id = $1").execute(Tuple.of(order_id),
-				ar -> {
+		pgClient.preparedQuery(
+				"SELECT id, client_id, smeta, smeta_approved,order_approved, order_doc_main, order_doc_signed FROM db_order WHERE id = $1")
+				.execute(Tuple.of(order_id), ar -> {
 					if (ar.succeeded()) {
 						Number clientId = ar.result().iterator().next().toJson().getNumber("client_id");
 						Order order = new Order();
 						order.setId(order_id);
+						order.setSmeta_approved(ar.result().iterator().next().toJson().getBoolean("smeta_approved"));
+						order.setOrder_approved(ar.result().iterator().next().toJson().getBoolean("order_approved"));
 
+						order.setOrder_doc_main(ar.result().iterator().next().toJson().getString("order_doc_main"));
+						order.setOrder_doc_signed(ar.result().iterator().next().toJson().getString("order_doc_signed"));
 						pgClient.preparedQuery(
 								"SELECT id, login, first_name, last_name, role, order_id FROM db_user WHERE id = $1")
 								.execute(Tuple.of(clientId), userResult -> {
@@ -328,6 +332,93 @@ public class OrderServiceImpl implements OrderService {
 			response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
 					.end(e.getMessage());
 		}
+	}
+
+	@Override
+	public void approveSmeta(RoutingContext ctx) {
+		HttpServerResponse response = ctx.response();
+
+		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
+		Boolean smeta_approved = ctx.getBodyAsJson().getBoolean("smeta_approved");
+
+		pgClient.preparedQuery("UPDATE public.db_order SET smeta_approved=$1 WHERE id = $2;")
+				.execute(Tuple.of(smeta_approved, order_id), res -> {
+					if (res.succeeded()) {
+						response.setStatusCode(200).end();
+					} else {
+						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(res.cause().toString());
+					}
+				});
+
+	}
+
+	@Override
+	public void saveOrderDoc(RoutingContext ctx) {
+		ctx.response().setChunked(true);
+		HttpServerResponse response = ctx.response();
+
+		Set<FileUpload> uploads = ctx.fileUploads();
+
+		Order order = new Order();
+		order.setId(Integer.valueOf(ctx.request().getParam("order_id")));
+
+		if (ctx.request().getParam("order_doc_main") != null) {
+			order.setOrder_doc_main(ctx.request().getParam("order_doc_main"));
+		}
+
+		if (ctx.request().getParam("order_doc_signed") != null) {
+			order.setOrder_doc_signed(ctx.request().getParam("order_doc_signed"));
+		}
+
+		uploads.forEach(upload -> {
+			try {
+				if (upload.name().contains("order_doc_main")) {
+					File uploadedFile = new File(upload.uploadedFileName());
+					uploadedFile.renameTo(new File("webroot/" + upload.fileName()));
+					uploadedFile.createNewFile();
+					order.setOrder_doc_main(upload.fileName());
+				}
+				if (upload.name().contains("order_doc_signed")) {
+					File uploadedFile = new File(upload.uploadedFileName());
+					uploadedFile.renameTo(new File("webroot/" + upload.fileName()));
+					uploadedFile.createNewFile();
+					order.setOrder_doc_signed(upload.fileName());
+				}
+			} catch (IOException e) {
+//						// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+
+		pgClient.preparedQuery("UPDATE public.db_order SET order_doc_main=$1, order_doc_signed=$2 WHERE id = $3;")
+				.execute(Tuple.of(order.getOrder_doc_main(), order.getOrder_doc_signed(), order.getId()), res -> {
+					if (res.succeeded()) {
+						response.setStatusCode(200).end();
+					} else {
+						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(res.cause().toString());
+					}
+				});
+	}
+
+	@Override
+	public void approveOrder(RoutingContext ctx) {
+		HttpServerResponse response = ctx.response();
+
+		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
+		Boolean order_approved = ctx.getBodyAsJson().getBoolean("order_approved");
+
+		pgClient.preparedQuery("UPDATE public.db_order SET order_approved=$1 WHERE id = $2;")
+				.execute(Tuple.of(order_approved, order_id), res -> {
+					if (res.succeeded()) {
+						response.setStatusCode(200).end();
+					} else {
+						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(res.cause().toString());
+					}
+				});
+
 	}
 
 }

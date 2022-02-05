@@ -12,4 +12,9 @@ public interface OrderService {
 	void approveContract(RoutingContext ctx);
 	
 	void saveSmeta(RoutingContext ctx);
+	void approveSmeta(RoutingContext ctx);
+	
+	void saveOrderDoc(RoutingContext ctx);
+	void approveOrder(RoutingContext ctx);
+	
 }
