@@ -2,11 +2,14 @@ package backend;
 
 import backend.Routes.AuthRoutes;
 import backend.Routes.OrderRoutes;
+import backend.Routes.ProjectRoutes;
 import backend.Routes.UserRoutes;
 import backend.Services.AuthService.AuthService;
 import backend.Services.AuthService.impl.AuthServiceImpl;
 import backend.Services.OrderService.OrderService;
 import backend.Services.OrderService.impl.OrderServiceImpl;
+import backend.Services.ProjectService.ProjectService;
+import backend.Services.ProjectService.ProjectServiceImpl;
 import backend.Services.UserService.UserService;
 import backend.Services.UserService.impl.UserServiceImpl;
 import backend.db.PostgresConnection;
@@ -40,6 +43,9 @@ public class MainVerticle extends AbstractVerticle {
 		OrderService orderService = new OrderServiceImpl(pgClient);
 		OrderRoutes orderRoutes = new OrderRoutes(orderService);
 
+		ProjectService projectService = new ProjectServiceImpl(pgClient);
+		ProjectRoutes projectRoutes = new ProjectRoutes(projectService);
+
 		Router router = Router.router(vertx);
 		HttpServer server = vertx.createHttpServer();
 
@@ -57,14 +63,13 @@ public class MainVerticle extends AbstractVerticle {
 			String[] pathSplited = path.split("/");
 			String fileName = pathSplited[3];
 			HttpServerResponse response = handler.response();
-			response
-			.putHeader("Transfer-Encoding", "chunked")
-			.sendFile("webroot/" + fileName);
+			response.putHeader("Transfer-Encoding", "chunked").sendFile("webroot/" + fileName);
 		});
 
 		router.mountSubRouter("/auth", authRoutes.setAuthRoutes(vertx));
 		router.mountSubRouter("/user", userRoutes.setUserRoutes(vertx));
 		router.mountSubRouter("/order", orderRoutes.setOrderRoutes(vertx));
+		router.mountSubRouter("/project", projectRoutes.setProjectRoutes(vertx));
 
 		router.route().handler(ctx -> {
 			HttpServerResponse response = ctx.response();
