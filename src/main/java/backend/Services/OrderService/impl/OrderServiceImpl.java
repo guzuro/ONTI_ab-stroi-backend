@@ -33,21 +33,33 @@ public class OrderServiceImpl implements OrderService {
 	public void createOrder(RoutingContext ctx) {
 		HttpServerResponse response = ctx.response();
 
-		Order order = ctx.getBodyAsJson().mapTo(Order.class);
+		Number client_id = ctx.getBodyAsJson().getNumber("client_id");
 
-		pgClient.preparedQuery("INSERT INTO db_order(client_id) VALUES ($1) RETURNING id;")
-				.execute(Tuple.of(order.getClient_id()), ar -> {
+		pgClient.preparedQuery("INSERT INTO db_order(client_id) VALUES ($1) RETURNING id;").execute(Tuple.of(client_id),
+				ar -> {
 					if (ar.succeeded()) {
 						Number order_id = ar.result().iterator().next().toJson().getNumber("id");
 						JsonObject json = new JsonObject();
 						json.put("order_id", order_id);
 						LocalDateTime updateTime = LocalDateTime.now();
 						pgClient.preparedQuery("UPDATE db_user SET updated_at=$1, order_id=$2 WHERE id = $3;")
-								.execute(Tuple.of(updateTime, order_id, order.getClient_id()), res -> {
+								.execute(Tuple.of(updateTime, order_id, client_id), res -> {
 									if (ar.succeeded()) {
-										response.setStatusCode(200)
-												.putHeader("content-type", "application/json; charset=UTF-8")
-												.end(json.encodePrettily());
+										pgClient.preparedQuery("INSERT INTO db_contract(order_id) VALUES ($1);")
+												.execute(Tuple.of(order_id), contRes -> {
+													if (contRes.succeeded()) {
+														response.setStatusCode(200)
+																.putHeader("content-type",
+																		"application/json; charset=UTF-8")
+																.end(json.encodePrettily());
+													} else {
+														response.setStatusCode(500)
+																.putHeader("content-type",
+																		"application/json; charset=UTF-8")
+																.end(ar.cause().toString());
+													}
+												});
+
 									} else {
 										response.setStatusCode(400)
 												.putHeader("content-type", "application/json; charset=UTF-8")

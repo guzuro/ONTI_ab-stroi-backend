@@ -18,7 +18,13 @@ public class ProjectRoutes {
 		projectRouter.post("/add").handler(rc -> projectService.addProject(rc));
 		projectRouter.post("/get").handler(rc -> projectService.getProject(rc));
 		projectRouter.post("/update").handler(rc -> projectService.updateProject(rc));
+		projectRouter.post("/doPayment").handler(rc -> projectService.doPrePayment(rc));
+		
+		projectRouter.post("/addstep").handler(rc -> projectService.addStep(rc));
+		projectRouter.post("/doStepPayment").handler(rc -> projectService.doStepPayment(rc));
 
+		
+		
 		return projectRouter;
 	}	
 }

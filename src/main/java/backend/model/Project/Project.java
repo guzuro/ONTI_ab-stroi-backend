@@ -7,15 +7,16 @@ public class Project {
 	private Number id;
 	private Number order_id;
 	private Number client_id;
-	private Double prepayment_sum;
+	private int prepayment_sum;
 	private Boolean prepayment_success;
+	private String project_end_date;
 	private List<ProjectStep> steps;
 
 	public Project() {
 
 	}
 
-	public Project(Number order_id, Number client_id, Double prepayment_sum, Boolean prepayment_success,
+	public Project(Number order_id, Number client_id, int prepayment_sum, Boolean prepayment_success,
 			List<ProjectStep> steps) {
 		this.order_id = order_id;
 		this.client_id = client_id;
@@ -24,22 +25,41 @@ public class Project {
 		this.steps = steps;
 	}
 
-	public Project(Number id, Number order_id, Number client_id, Double prepayment_sum, Boolean prepayment_success,
-			List<ProjectStep> steps) {
+	public Project(Number order_id, Number client_id, String project_end_date) {
+		this.order_id = order_id;
+		this.client_id = client_id;
+		this.project_end_date = project_end_date;
+}
+
+	public Project(Number id, Number order_id, Number client_id, int prepayment_sum, Boolean prepayment_success,
+			List<ProjectStep> steps, String project_end_date) {
 		this.id = id;
 		this.order_id = order_id;
 		this.client_id = client_id;
 		this.prepayment_sum = prepayment_sum;
 		this.prepayment_success = prepayment_success;
 		this.steps = steps;
+		this.project_end_date = project_end_date;
 	}
-	
-	public Project(Number id, Number order_id, Number client_id, Double prepayment_sum, Boolean prepayment_success) {
+
+	public Project(Number id, Number order_id, Number client_id, int prepayment_sum, Boolean prepayment_success,
+			String project_end_date) {
 		this.id = id;
 		this.order_id = order_id;
 		this.client_id = client_id;
 		this.prepayment_sum = prepayment_sum;
 		this.prepayment_success = prepayment_success;
+		this.project_end_date = project_end_date;
+	}
+
+	public Project(Number id, Boolean prepayment_success) {
+		this.id = id;
+		this.prepayment_success = prepayment_success;
+	}
+
+	public Project(Number id, String project_end_date) {
+		this.id = id;
+		this.project_end_date = project_end_date;
 	}
 
 	public Number getId() {
@@ -66,11 +86,11 @@ public class Project {
 		this.client_id = client_id;
 	}
 
-	public Double getPrepayment_sum() {
+	public int getPrepayment_sum() {
 		return prepayment_sum;
 	}
 
-	public void setPrepayment_sum(Double prepayment_sum) {
+	public void setPrepayment_sum(int prepayment_sum) {
 		this.prepayment_sum = prepayment_sum;
 	}
 
@@ -88,5 +108,13 @@ public class Project {
 
 	public void setSteps(List<ProjectStep> projectSteps) {
 		this.steps = projectSteps;
+	}
+
+	public String getProject_end_date() {
+		return project_end_date;
+	}
+
+	public void setProject_end_date(String project_end_date) {
+		this.project_end_date = project_end_date;
 	}
 }
