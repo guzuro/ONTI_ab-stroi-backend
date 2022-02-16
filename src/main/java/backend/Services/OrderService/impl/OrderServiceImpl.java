@@ -171,29 +171,6 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public void getContract(RoutingContext ctx) {
-		HttpServerResponse response = ctx.response();
-		HttpServerRequest req = ctx.request();
-
-		Number order_id = ctx.getBodyAsJson().getNumber("order_id");
-
-		System.out.println(req.path());
-		pgClient.preparedQuery(
-				"SELECT contract_main, contract_signed, contract_approved FROM db_contract WHERE order_id = $1")
-				.execute(Tuple.of(order_id), ar -> {
-					if (ar.succeeded()) {
-						Contract contract = ar.result().iterator().next().toJson().mapTo(Contract.class);
-						response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
-								.end(JsonObject.mapFrom(contract).encodePrettily());
-					} else {
-						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
-								.end(ar.cause().toString());
-					}
-				});
-
-	}
-
-	@Override
 	public void saveContract(RoutingContext ctx) {
 		ctx.response().setChunked(true);
 		HttpServerResponse response = ctx.response();

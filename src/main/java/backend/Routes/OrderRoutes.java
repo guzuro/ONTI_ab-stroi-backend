@@ -20,7 +20,6 @@ public class OrderRoutes {
 		orderRouter.post("/order/saveOrderDoc").handler(rc -> orderService.saveOrderDoc(rc));
 		orderRouter.post("/order/approveOrder").handler(rc -> orderService.approveOrder(rc));
 		
-		orderRouter.post("/contract/get").handler(rc -> orderService.getContract(rc));
 		orderRouter.post("/contract/save").handler(rc -> orderService.saveContract(rc));
 		orderRouter.post("/contract/approve").handler(rc -> orderService.approveContract(rc));
 		

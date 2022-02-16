@@ -7,7 +7,6 @@ public interface OrderService {
 	void removeOrder(RoutingContext ctx_id);
 	void getOrderById(RoutingContext ctx_id);
 	
-	void getContract(RoutingContext ctx);
 	void saveContract(RoutingContext ctx);
 	void approveContract(RoutingContext ctx);
 	
