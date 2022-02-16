@@ -6,4 +6,6 @@ public interface AuthService {
 	void register(RoutingContext ctx);
 	void login(RoutingContext ctx);
 	void logout(RoutingContext ctx);
+	void checkLogin(RoutingContext ctx);
+
 }

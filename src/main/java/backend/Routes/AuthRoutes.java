@@ -18,6 +18,7 @@ public class AuthRoutes {
 		authRouter.post("/login").handler(rc -> authService.login(rc));
 		authRouter.post("/register").handler(rc -> authService.register(rc));
 		authRouter.post("/logout").handler(rc -> authService.logout(rc));
+		authRouter.post("/checklogin").handler(rc -> authService.checkLogin(rc));
 
 		return authRouter;
 	}

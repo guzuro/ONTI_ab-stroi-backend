@@ -1,5 +1,7 @@
 package backend.Services.AuthService.impl;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
+
 import backend.Services.AuthService.AuthService;
 import backend.model.LoginData;
 import backend.model.User.Administrator;
@@ -74,6 +76,20 @@ public class AuthServiceImpl implements AuthService {
 
 		HttpServerResponse response = ctx.response();
 		response.putHeader("content-type", "text/html; charset=utf-8").end("<h1> logout </h1>");
+	}
+
+	@Override
+	public void checkLogin(RoutingContext ctx) {
+		Session session = ctx.session();
+		HttpServerResponse response = ctx.response();
+
+		if (session.get("id") != null) {
+
+			response.setStatusCode(200).putHeader("content-type", "application/json; charset=UTF-8")
+					.end(new JsonObject().put("id", session.get("id")).encodePrettily());
+		} else {
+			response.setStatusCode(401).end();
+		}
 	}
 
 }
