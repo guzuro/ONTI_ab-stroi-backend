@@ -1,14 +1,20 @@
 package backend.Services.ProjectService;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import backend.model.Order.Contract;
 import backend.model.Order.Smeta;
 import backend.model.Project.Project;
 import backend.model.Project.ProjectStep;
+import backend.model.Project.StepPhoto;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -21,6 +27,36 @@ public class ProjectServiceImpl implements ProjectService {
 
 	public ProjectServiceImpl(SqlClient pgClient) {
 		this.pgClient = pgClient;
+	}
+
+	@Override
+	public CompletableFuture<List<ProjectStep>> doLogic(RowSet<Row> result) {
+		CompletableFuture<List<ProjectStep>> future = new CompletableFuture<List<ProjectStep>>();
+
+		List<ProjectStep> projectSteps = new ArrayList<ProjectStep>();
+		for (Row row : result) {
+			ProjectStep step = row.toJson().mapTo(ProjectStep.class);
+
+			pgClient.preparedQuery("SELECT id, name FROM db_project_step_image WHERE step_id = $1")
+					.execute(Tuple.of(step.getId()), photoRes -> {
+						if (photoRes.succeeded()) {
+							RowSet<Row> photoRows = photoRes.result();
+							ArrayList<StepPhoto> stepPhotos = new ArrayList<StepPhoto>();
+
+							if (photoRes.result().rowCount() != 0) {
+								for (Row photoRow : photoRows) {
+									stepPhotos.add(JsonObject.mapFrom(photoRow.toJson()).mapTo(StepPhoto.class));
+								}
+							}
+							step.setPhoto(stepPhotos);
+							projectSteps.add(step);
+							future.complete(projectSteps);
+						}
+					});
+
+		}
+		return future;
+
 	}
 
 	@Override
@@ -41,21 +77,21 @@ public class ProjectServiceImpl implements ProjectService {
 							Project project = ar.result().iterator().next().toJson().mapTo(Project.class);
 
 							pgClient.preparedQuery(
-									"SELECT id, photo, end_date, title, description, step_payed, is_done, project_id, step_cost FROM db_project_step WHERE project_id = $1")
+									"SELECT id, end_date, title, description, step_payed, is_done, project_id, step_cost FROM db_project_step WHERE project_id = $1")
 									.execute(Tuple.of(ar.result().iterator().next().toJson().getNumber("id")), res -> {
 										if (res.succeeded()) {
-											List<ProjectStep> projectSteps = new ArrayList<ProjectStep>();
 											RowSet<Row> result = res.result();
 											if (result.size() != 0) {
-												for (Row row : result) {
-													projectSteps.add(
-															JsonObject.mapFrom(row.toJson()).mapTo(ProjectStep.class));
-												}
+
+												doLogic(result).thenAccept(list -> project.setSteps(list))
+														.thenAccept(then -> {
+															response.setStatusCode(200)
+																	.putHeader("content-type",
+																			"application/json; charset=UTF-8")
+																	.end(JsonObject.mapFrom(project).encodePrettily());
+														});
 											}
-											project.setSteps(projectSteps);
-											response.setStatusCode(200)
-													.putHeader("content-type", "application/json; charset=UTF-8")
-													.end(JsonObject.mapFrom(project).encodePrettily());
+
 										} else {
 											response.setStatusCode(500)
 													.putHeader("content-type", "application/json; charset=UTF-8")
@@ -183,5 +219,60 @@ public class ProjectServiceImpl implements ProjectService {
 					}
 				});
 
+	}
+
+	@Override
+	public void uploadStepPhoto(RoutingContext ctx) {
+		ctx.response().setChunked(true);
+		HttpServerResponse response = ctx.response();
+
+		Number step_id = Integer.valueOf(ctx.request().getParam("step_id"));
+
+		Set<FileUpload> uploads = ctx.fileUploads();
+		StepPhoto stepPhoto = new StepPhoto();
+
+		if (ctx.request().getParam("step_photo") != null) {
+			stepPhoto.setName(ctx.request().getParam("step_photo"));
+		}
+
+		uploads.forEach(upload -> {
+			try {
+				if (upload.name().contains("step_photo")) {
+					File uploadedFile = new File(upload.uploadedFileName());
+					uploadedFile.renameTo(new File("webroot/" + upload.fileName()));
+					uploadedFile.createNewFile();
+					stepPhoto.setName(upload.fileName());
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+
+		pgClient.preparedQuery("INSERT INTO db_project_step_image (name, step_id) VALUES($1, $2);")
+				.execute(Tuple.of(stepPhoto.getName(), step_id), res -> {
+					if (res.succeeded()) {
+						response.setStatusCode(200).end();
+					} else {
+						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(res.cause().toString());
+					}
+				});
+	}
+	
+	@Override
+	public void removeStepPhoto(RoutingContext ctx) {
+		HttpServerResponse response = ctx.response();
+
+		Number image_id = ctx.getBodyAsJson().getNumber("image_id");
+
+		pgClient.preparedQuery("DELETE FROM db_project_step_image WHERE id = $1")
+				.execute(Tuple.of(image_id), res -> {
+					if (res.succeeded()) {
+						response.setStatusCode(200).end();
+					} else {
+						response.setStatusCode(500).putHeader("content-type", "application/json; charset=UTF-8")
+								.end(res.cause().toString());
+					}
+				});
 	}
 }

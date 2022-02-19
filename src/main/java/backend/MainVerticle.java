@@ -83,7 +83,7 @@ public class MainVerticle extends AbstractVerticle {
 
 		server.requestHandler(router).listen(3080, httpServerAsyncResult -> {
 			if (httpServerAsyncResult.succeeded()) {
-				System.out.println("HTTP server started on port 8080");
+				System.out.println("HTTP server started on port 3080");
 				startPromise.complete();
 			} else {
 				startPromise.fail(httpServerAsyncResult.cause());

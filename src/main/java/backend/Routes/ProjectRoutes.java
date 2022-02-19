@@ -23,8 +23,9 @@ public class ProjectRoutes {
 		projectRouter.post("/addstep").handler(rc -> projectService.addStep(rc));
 		projectRouter.post("/doStepPayment").handler(rc -> projectService.doStepPayment(rc));
 
-		
-		
+		projectRouter.post("/uploadphoto").handler(rc -> projectService.uploadStepPhoto(rc));
+		projectRouter.post("/removephoto").handler(rc -> projectService.removeStepPhoto(rc));
+
 		return projectRouter;
 	}	
 }

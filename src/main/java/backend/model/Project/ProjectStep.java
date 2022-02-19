@@ -1,9 +1,11 @@
 package backend.model.Project;
 
+import java.util.ArrayList;
+
 public class ProjectStep {
 	private Number id;
 	private Number project_id;
-	private String[] photo;
+	private ArrayList<StepPhoto> photo;
 	private String end_date;
 	private Boolean to_delete;
 	private Boolean step_payed;
@@ -16,7 +18,7 @@ public class ProjectStep {
 
 	}
 
-	public ProjectStep(Number id, Number project_id, String[] photo, String end_date, Boolean to_delete,
+	public ProjectStep(Number id, Number project_id, ArrayList<StepPhoto> photo, String end_date, Boolean to_delete,
 			Boolean step_payed, Boolean is_done, String title, String description, Number step_cost) {
 		this.id = id;
 		this.title = title;
@@ -30,15 +32,19 @@ public class ProjectStep {
 		this.step_cost = step_cost;
 	}
 
-	public ProjectStep(Number project_id, String[] photo, String end_date, Boolean to_delete) {
+	public ProjectStep(Number project_id, ArrayList<StepPhoto> photo, String end_date, Boolean to_delete) {
 		this.project_id = project_id;
 		this.photo = photo;
 		this.end_date = end_date;
 		this.to_delete = to_delete;
 	}
 
-	public ProjectStep(Number project_id, String[] photo) {
+	public ProjectStep(Number project_id, ArrayList<StepPhoto> photo) {
 		this.project_id = project_id;
+		this.photo = photo;
+	}
+	
+	public ProjectStep(ArrayList<StepPhoto> photo) {
 		this.photo = photo;
 	}
 
@@ -72,11 +78,11 @@ public class ProjectStep {
 		this.project_id = project_id;
 	}
 
-	public String[] getPhoto() {
+	public ArrayList<StepPhoto> getPhoto() {
 		return photo;
 	}
 
-	public void setPhoto(String[] photo) {
+	public void setPhoto(ArrayList<StepPhoto> photo) {
 		this.photo = photo;
 	}
 
